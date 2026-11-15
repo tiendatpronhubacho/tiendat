@@ -8,7 +8,7 @@ let package = Package(
         .iOS(.v16)
     ],
     products: [
-        .executable(
+        .library(
             name: "TienDat",
             targets: ["TienDatApp"]
         )
@@ -32,7 +32,7 @@ let package = Package(
                 .linkedFramework("Foundation")
             ]
         ),
-        .executableTarget(
+        .target(
             name: "TienDatApp",
             dependencies: [
                 "TienDatObjC",
