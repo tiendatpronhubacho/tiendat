@@ -3,4 +3,4 @@ bundleID: com.tiendat.ogios
 product: TienDat
 infoPath: Info.plist
 resources:
-  - path: Resources
+  - Resources
