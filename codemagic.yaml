@@ -10,9 +10,8 @@ workflows:
       - name: Build
         script: |
           if command -v xtool >/dev/null 2>&1; then
-            xtool dev build || true
+            xtool dev build --ipa || true
           fi
-          swift build -c release || true
     artifacts:
       - xtool/**/*.ipa
       - "*.ipa"
