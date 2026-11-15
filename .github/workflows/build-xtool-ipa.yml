@@ -1,0 +1,27 @@
+name: Build xtool Unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build-xtool:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package SwiftPM via xtool
+        run: |
+          brew install xtool-org/tap/xtool || true
+          if command -v xtool >/dev/null 2>&1; then
+            xtool dev build || xtool dev --help
+          else
+            swift build -c release
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TienDat-xtool-output
+          path: |
+            xtool/**/*.ipa
+            *.ipa
+            .build/release/**

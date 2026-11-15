@@ -1,0 +1,4 @@
+#import "exploit/bad_query.h"
+#import "exploit/mcm_bridge.h"
+#import "helpers/AppIconHelper.h"
+#import "helpers/DisplayIdentity.h"
