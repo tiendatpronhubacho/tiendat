@@ -6,13 +6,12 @@ workflows:
     scripts:
       - name: Install xtool
         script: |
-          brew install xtool-org/tap/xtool || true
+          set -e
+          brew install xtool-org/tap/xtool
       - name: Build
         script: |
-          if command -v xtool >/dev/null 2>&1; then
-            xtool dev build --ipa || true
-          fi
+          set -e
+          xtool dev build --ipa
     artifacts:
       - xtool/**/*.ipa
       - "*.ipa"
-      - .build/release/**
