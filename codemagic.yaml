@@ -7,12 +7,16 @@ workflows:
       xcode: latest
       vars:
         XCODE_PROJECT: "ThreeOneOSFive.xcodeproj"
-        XCODE_SCHEME: "ThreeOneOSFive"
+        # Không dùng scheme nữa, dùng target trực tiếp
+        XCODE_TARGET: "ThreeOneOSFive" 
     scripts:
       - name: Build archive without signing
         script: |
+          rm -rf build
+          
+          # Dùng -target thay vì -scheme
           xcodebuild -project "$XCODE_PROJECT" \
-                     -scheme "$XCODE_SCHEME" \
+                     -target "$XCODE_TARGET" \
                      -configuration Release \
                      -sdk iphoneos \
                      -derivedDataPath build \
@@ -20,10 +24,16 @@ workflows:
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
                      build
+                     
       - name: Package into IPA
         script: |
           mkdir -p Payload
-          mv build/Build/Products/Release-iphoneos/ThreeOneOSFive.app Payload/
-          zip -r ThreeOneOSFive.ipa Payload
+          
+          # Copy file .app vào Payload
+          mv build/Build/Products/Release-iphoneos/*.app Payload/
+          
+          # Nén thành file .ipa
+          zip -r TienDat.ipa Payload
+          
     artifacts:
-      - ThreeOneOSFive.ipa
+      - TienDat.ipa
