@@ -7,11 +7,10 @@ workflows:
       xcode: latest
       vars:
         XCODE_PROJECT: "ThreeOneOSFive.xcodeproj"
-        XCODE_TARGET: "ThreeOneOSFive" 
+        XCODE_TARGET: "3105" # Đã đổi thành tên Target thực tế
     scripts:
       - name: Build archive without signing
         script: |
-          # Bỏ -derivedDataPath, build mặc định
           xcodebuild -project "$XCODE_PROJECT" \
                      -target "$XCODE_TARGET" \
                      -configuration Release \
@@ -26,7 +25,6 @@ workflows:
           mkdir -p Payload
           
           # Tìm thư mục build mặc định của Xcode và copy file .app
-          # Thư mục mặc định thường là ~/Library/Developer/Xcode/DerivedData/
           find ~/Library/Developer/Xcode/DerivedData -name "*.app" -path "*Release-iphoneos*" -exec cp -r {} Payload/ \;
           
           # Nén thành file .ipa
