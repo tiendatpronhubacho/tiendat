@@ -1,6 +1,0 @@
-version: 1
-bundleID: com.tiendat.ogios
-product: TienDat
-infoPath: Info.plist
-resources:
-  - Resources
