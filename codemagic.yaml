@@ -691,8 +691,8 @@ workflows:
           
           start_id = 300
           for idx, filename in enumerate(patch_files):
-              file_id = f"3105R{start_id + idx:03d}"
-              build_id = f"3105RB{start_id + idx:03d}"
+              file_id = f"3105F{start_id + idx:03d}"
+              build_id = f"3105FB{start_id + idx:03d}"
               
               build_files_entries.append(f"\t\t{build_id} /* {filename} in Resources */ = {{isa = PBXBuildFile; fileRef = {file_id}; }};")
               file_ref_entries.append(f"\t\t{file_id} /* {filename} */ = {{isa = PBXFileReference; lastKnownFileType = file; path = \"{patches_dir}/{filename}\"; sourceTree = \"<group>\"; }};")
