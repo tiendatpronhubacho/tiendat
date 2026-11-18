@@ -1,13 +1,20 @@
 import SwiftUI
 
-// Khai báo hàm từ file C/Obj-C để check quyền
+// 1. Khai báo các hàm C từ MCMBridge và Sandbox của 3105
 @_silgen_name("MCMBridgeAvailable")
 func checkSandboxStatus() -> Bool
+
+@_silgen_name("MCMContainerPathForIdentifier")
+func MCMContainerPathForIdentifier(_ cls: UInt64, _ identifier: NSString, _ group: Bool, _ error: UnsafeMutablePointer<NSString?>?) -> NSString?
+
+@_silgen_name("sandbox_escape")
+func sandbox_escape(_ self_proc: UInt64) -> Int32
 
 struct ContentView: View {
     @State private var aimDragActive = false
     @State private var aimBodyActive = false
     
+    // Gọi hàm kiểm tra thực tế
     @State private var isSandboxAvailable: Bool = checkSandboxStatus()
     
     var body: some View {
@@ -46,7 +53,7 @@ struct ContentView: View {
                                 isEnabled: isSandboxAvailable,
                                 onToggle: { isOn in
                                     if isOn {
-                                        print("Đã bật Aim Drag")
+                                        applyPatch(named: "Aim Drag")
                                     }
                                 }
                             )
@@ -57,7 +64,7 @@ struct ContentView: View {
                                 isEnabled: isSandboxAvailable,
                                 onToggle: { isOn in
                                     if isOn {
-                                        print("Đã bật Aim Body")
+                                        applyPatch(named: "Aim Body")
                                     }
                                 }
                             )
@@ -122,6 +129,52 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             isSandboxAvailable = checkSandboxStatus()
+        }
+    }
+    
+    // 2. HÀM GỌI PATCH TRANSACTION THỰC TẾ
+    func applyPatch(named patchName: String) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            print("Bắt đầu nạp patch: \(patchName)")
+            
+            // 1. Lấy quyền Sandbox
+            if sandbox_escape(0) != 0 {
+                print("Lỗi: Không thể escape sandbox!")
+                return
+            }
+            
+            // 2. Lấy Container Path của Free Fire VN
+            let bundleID = "com.garena.ffvn"
+            guard let containerPathRaw = MCMContainerPathForIdentifier(0, bundleID as NSString, false, nil) else {
+                print("Lỗi: Không tìm thấy container của Free Fire VN!")
+                return
+            }
+            let containerURL = URL(fileURLWithPath: containerPathRaw as String)
+            
+            // 3. Đọc file .3105 từ Bundle
+            guard let patchPath = Bundle.main.path(forResource: "\(patchName).3105", ofType: nil, inDirectory: "Patches"),
+                  let patchData = try? Data(contentsOf: URL(fileURLWithPath: patchPath)) else {
+                print("Lỗi: Không tìm thấy file \(patchName).3105 trong thư mục Patches!")
+                return
+            }
+            
+            // 4. Áp dụng PatchTransaction
+            do {
+                let decoded = try PatchPackageCodec.decode(patchData, password: nil)
+                let project = decoded.project
+                
+                let backupRoot = FileManager.default.temporaryDirectory.appendingPathComponent("3105_Backups")
+                
+                let receipt = try PatchTransaction.apply(
+                    project: project,
+                    backupRoot: backupRoot,
+                    containerResolver: { _ in containerURL }
+                )
+                print("Nạp patch thành công! Transaction ID: \(receipt.id)")
+                
+            } catch {
+                print("Lỗi khi nạp patch: \(error)")
+            }
         }
     }
     
