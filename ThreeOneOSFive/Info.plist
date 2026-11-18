@@ -100,5 +100,10 @@
     </array>
     <key>MinimumOSVersion</key>
     <string>16.0</string>
+    <key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>freefirevn</string>
+		<string>freefire</string>
+	</array>
 </dict>
 </plist>

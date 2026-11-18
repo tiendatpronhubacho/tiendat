@@ -1,15 +1,17 @@
 import SwiftUI
 
-// Khai báo hàm từ file C/Obj-C của 3105 để check quyền
-// Nếu 3105 không dùng MCMBridgeAvailable, hãy đổi tên hàm cho khớp với hàm check quyền thực tế bên 3105
+// Khai báo hàm từ file C/Obj-C để check quyền và load patch
 @_silgen_name("MCMBridgeAvailable")
 func checkSandboxStatus() -> Bool
+
+@_silgen_name("load_patch_dylib")
+func load_patch_dylib(_ patchName: NSString) -> Bool
 
 struct ContentView: View {
     @State private var aimDragActive = false
     @State private var aimBodyActive = false
     
-    // Gọi hàm kiểm tra thực tế từ nhân C của 3105
+    // Gọi hàm kiểm tra thực tế từ nhân C
     @State private var isSandboxAvailable: Bool = checkSandboxStatus()
     
     var body: some View {
@@ -50,13 +52,25 @@ struct ContentView: View {
                                 title: "Aim Drag",
                                 subtitle: "FREE FIRE • NORMAL",
                                 isActive: $aimDragActive,
-                                isEnabled: isSandboxAvailable
+                                isEnabled: isSandboxAvailable,
+                                onToggle: { isOn in
+                                    if isOn {
+                                        let success = load_patch_dylib("Aim Drag" as NSString)
+                                        print("Nạp Aim Drag: \(success)")
+                                    }
+                                }
                             )
                             PatchCard(
                                 title: "Aim Body",
                                 subtitle: "FREE FIRE • NORMAL",
                                 isActive: $aimBodyActive,
-                                isEnabled: isSandboxAvailable
+                                isEnabled: isSandboxAvailable,
+                                onToggle: { isOn in
+                                    if isOn {
+                                        let success = load_patch_dylib("Aim Body" as NSString)
+                                        print("Nạp Aim Body: \(success)")
+                                    }
+                                }
                             )
                         }
                         .padding(.horizontal)
@@ -67,7 +81,7 @@ struct ContentView: View {
                         Circle()
                             .fill(isSandboxAvailable ? Color.green : Color.red)
                             .frame(width: 8, height: 8)
-                        Text(isSandboxAvailable ? "READY — SELECT A PATCH" : "BLOCKED — iOS SANDBOX ACCESS IS NOT AVAILABLE")
+                        Text(isSandboxAvailable ? "READY -- SELECT A PATCH" : "BLOCKED -- iOS SANDBOX ACCESS IS NOT AVAILABLE")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(isSandboxAvailable ? .white : .gray)
                     }
@@ -85,7 +99,7 @@ struct ContentView: View {
                                 .foregroundColor(.red)
                         }
                         
-                        Link(destination: URL(string: "https://freefiremobile.com")!) {
+                        Link(destination: URL(string: "freefirevn://")!) {
                             HStack {
                                 Image(systemName: "arrow.up.right.square.fill")
                                     .foregroundColor(.white)
@@ -212,7 +226,7 @@ struct DeviceStatusCard: View {
                     Text(isSupported ? "Support" : "Patch access")
                         .foregroundColor(.gray)
                     Spacer()
-                    Text(isSupported ? "SUPPORTED" : "LIMITED — SANDBOX ACCESS DISABLED")
+                    Text(isSupported ? "SUPPORTED" : "LIMITED -- SANDBOX ACCESS DISABLED")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(isSupported ? .green : .white)
                         .multilineTextAlignment(.trailing)
@@ -235,10 +249,14 @@ struct PatchCard: View {
     let subtitle: String
     @Binding var isActive: Bool
     let isEnabled: Bool
+    var onToggle: (Bool) -> Void // Thêm closure này để bắt sự kiện bật/tắt
     
     var body: some View {
         Button(action: {
-            if isEnabled { isActive.toggle() }
+            if isEnabled { 
+                isActive.toggle() 
+                onToggle(isActive) // Gọi hàm khi toggle
+            }
         }) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {

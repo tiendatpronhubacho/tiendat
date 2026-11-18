@@ -5,8 +5,9 @@
 	};
 	objectVersion = 56;
 	objects = {
-
 /* Begin PBXBuildFile section */
+3105B001 /* Aim Body.3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105B002 /* Aim Body.3105 */; };
+		3105B003 /* Aim Drag.3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105B004 /* Aim Drag.3105 */; };
 		3105A200 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A020; };
 		3105A201 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A021; };
 		3105A203 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A023; };
@@ -78,6 +79,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+3105B002 /* Aim Body.3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aim Body.3105"; sourceTree = "<group>"; };
+		3105B004 /* Aim Drag.3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Aim Drag.3105"; sourceTree = "<group>"; };
 		3105A010 /* 3105.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "3105.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3105A020 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		3105A021 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -370,6 +373,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			    3105B001 /* Aim Body.3105 in Resources */,
+				3105B003 /* Aim Drag.3105 in Resources */,
 				3105A211,
 				3105A228,
 			);
