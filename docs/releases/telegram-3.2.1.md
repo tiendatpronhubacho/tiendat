@@ -1,0 +1,87 @@
+# 3.2.1 发布文案（Telegram 用）
+
+> 直接复制下面分割线以内的内容发 Telegram。超出单条消息长度时按
+> 「📌 功能」段拆两条发。
+
+---
+
+🚀 **3.2.1 正式版**
+
+无越狱 iOS 容器管理工具，基于 3105 全面重构的续作。本版对照 5 个同类项目完成**全量功能对齐**，是一次大版本升级。
+
+✨ **MobileGestalt 卡片页（全新）**
+• 暂存开关 + 右上「应用」一键统一写入
+• Apple 智能四要素体检：销售地区/监管型号/国行门控/端侧 AI，配置与真机实时对比
+• 31 条预设：灵动岛、AOD 全系、HDR、充电上限、相机控制、操作按钮、车祸检测、Apple 智能、照片消除、内部调试、SRD……
+• 锁定态保护：原生已开启的防误关，出厂为关的实验槽位锁定（强开会弄坏照片高质量消除）
+• CacheExtra 字段编辑器：8 种类型、plist 导入导出、类型保真（不会把浮点写成整数弄黑相机）
+
+📁 **任意文件替换（新模块）**
+• 选应用 → 逐级浏览容器目录 → 选文件 → 可选备份 → 替换
+• 替换记录永久保存，随时一键恢复备份
+• 支持保存预设：常用目标一键回填
+• iOS 26 和 27 都能用
+
+💾 **备份中心（新一级页）**
+• 所有修改自动先备份再写入，随时点击恢复
+• 全量备份：Gestalt/配置描述文件/补丁工作区打包，一键还原
+• 应用存档：游戏进度打包，卸载重装后一键找回
+
+🌍 **区域与 Siri AI**
+• 国行改美区 LL/A + 监管型号自动匹配
+• 原生 Siri AI（不动硬件，Face ID 无忧）/ 旧机型实验模式
+• 未知机型自动拒绝写入，防白苹果
+
+🧹 **清理器升级**
+• 三重安全防护（黑名单 + 身份校验 + 确认门）
+• 大 App 秒出列表（预算制测量 + 增量缓存）
+• 清理过程实时进度，累计已释放统计
+
+⚡ **性能**
+• 应用列表冷启动秒出（数据库直读 + 并行激活）
+• 诊断日志可查每阶段耗时
+
+📡 **支持系统**
+• iOS 17.0–18.7.1（内核）
+• iOS 26.0–26.6.1（bad_query）
+• iOS 26.7–27.3 beta 1（worse_query，27.3 已真机验证）
+• 按系统版本自动选择漏洞，无需手动切换
+• ⚠️ iOS 26.0–26.6.1 上 MobileGestalt/监管模式不可用（页面有红字提示），其余功能全部可用
+
+📥 **安装**
+自签工具安装（LCSign / Sideloadly / Impactor / Xcode）。
+iOS 26.7+ / 27.x 必须保留 App Group（Sideloadly 会丢，用 Impactor 或 Xcode）。
+⚠️ 改动系统配置前请整机备份；实验模式未经完整真机验证。
+
+🔗 下载：https://github.com/QuinnTang74/3106/releases/tag/v3.2.1
+应用内「设置 → 检查更新」也可自动发现新版本
+
+致谢：3105 (YangJiiii)、worse_query、WQ Files、Erosion-CN、GestaltX、YumEdit、WQManager、AltGallery
+
+#3106 #iOS27 #无越狱
+
+---
+
+🇬🇧 **English**
+
+🚀 **3.2.1 — stable**
+
+A no-jailbreak iOS container manager, rebuilt from 3105 with full feature parity against five comparable projects.
+
+✨ **MobileGestalt cards page**: staged toggles + one Apply button, 4-element Apple Intelligence checkup (config vs. on-device), 31 presets, lock states, Type-faithful CacheExtra field editor.
+
+📁 **Arbitrary file replace**: pick app → browse container folders → pick file → optional backup → replace. Persistent log, one-tap restore, saved presets. Works on iOS 26 & 27.
+
+💾 **Backup tab**: every write auto-backs-up first; full-workspace archive one-tap restore; app save backups survive reinstalls.
+
+🌍 **Region & Siri AI**: LL/A region triplet + regulatory matching, native Siri AI (Face ID untouched), experimental mode for older devices, anti-bounce writes.
+
+🧹 **Cleaner**: three-layer safety (blacklist + identity re-check + confirmation gate), budgeted measurement, live per-app progress.
+
+📡 **Support**: iOS 17.0–18.7.1 (kernel) · 26.0–26.6.1 (bad_query) · 26.7–27.3 beta 1 (worse_query). The exploit is picked automatically. On iOS 26.0–26.6.1 the system-group pages show a red banner; everything else works.
+
+📥 **Install**: sign the unsigned IPA yourself (LCSign / Sideloadly / Impactor / Xcode). iOS 26.7+/27.x must keep the App Group entitlement.
+
+🔗 https://github.com/QuinnTang74/3106/releases/tag/v3.2.1
+
+---
