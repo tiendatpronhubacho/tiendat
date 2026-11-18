@@ -1,47 +1,49 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-IPA="${1:-$ROOT/build/HYper-Regedit-Key-Enabled-unsigned.ipa}"
+echo "=== Bắt đầu build OGIOS unsigned ==="
 
-if ! command -v unzip >/dev/null 2>&1; then
-  echo "Error: unzip is required." >&2
-  exit 127
+# 1. Build app bằng xcodebuild
+xcodebuild -project ThreeOneOSFive.xcodeproj \
+           -scheme OGIOS \
+           -configuration Release \
+           -sdk iphoneos \
+           -derivedDataPath ./build \
+           CODE_SIGN_IDENTITY="" \
+           CODE_SIGNING_REQUIRED=NO \
+           CODE_SIGNING_ALLOWED=NO \
+           build
+
+# 2. Tìm file .app vừa build
+APP_PATH=$(find ./build/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
+if [ -z "$APP_PATH" ]; then
+    echo "Lỗi: Không tìm thấy file .app"
+    exit 1
+fi
+echo "Tìm thấy app tại: $APP_PATH"
+
+# 3. Tạo thư mục Payload và copy .app vào
+rm -rf Payload
+mkdir -p Payload
+cp -R "$APP_PATH" Payload/
+
+# 4. Nhét thẳng file patch vào trong .app (Bỏ qua Xcode)
+APP_NAME=$(basename "$APP_PATH")
+PATCHES_SRC="ThreeOneOSFive/Patches"
+PATCHES_DEST="Payload/$APP_NAME/Patches"
+
+if [ -d "$PATCHES_SRC" ]; then
+    echo "Đang copy file patch từ $PATCHES_SRC vào $PATCHES_DEST..."
+    mkdir -p "$PATCHES_DEST"
+    cp "$PATCHES_SRC"/*.3105 "$PATCHES_DEST/" 2>/dev/null || true
+else
+    echo "Cảnh báo: Không tìm thấy thư mục $PATCHES_SRC"
 fi
 
-if [[ ! -f "$IPA" ]]; then
-  echo "IPA not found; building it first: $IPA" >&2
-  "$ROOT/build_unsigned.sh"
-fi
+# 5. Đóng gói thành file .ipa
+IPA_NAME="OGIOS-unsigned.ipa"
+rm -f "$IPA_NAME"
+zip -r "$IPA_NAME" Payload > /dev/null
+rm -rf Payload
 
-WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/OGIOS-esign.XXXXXX")"
-trap 'rm -rf "$WORK_DIR"' EXIT
-
-unzip -q "$IPA" -d "$WORK_DIR/unpacked"
-
-APP_COUNT="$(find "$WORK_DIR/unpacked/Payload" -maxdepth 1 -type d -name '*.app' 2>/dev/null | wc -l | tr -d ' ')"
-if [[ "$APP_COUNT" != "1" ]]; then
-  echo "Error: expected exactly one app bundle directly under Payload; found $APP_COUNT." >&2
-  exit 1
-fi
-
-APP="$(find "$WORK_DIR/unpacked/Payload" -maxdepth 1 -type d -name '*.app' -print -quit)"
-if [[ -e "$APP/embedded.mobileprovision" || -e "$APP/_CodeSignature" ]]; then
-  echo "Error: the IPA contains an existing provisioning profile or code signature." >&2
-  echo "Build with build_unsigned.sh so eSign can apply the selected certificate and profile." >&2
-  exit 1
-fi
-
-if [[ ! -x "$APP/OGIOS" ]]; then
-  echo "Error: expected original executable OGIOS was not found in the app bundle." >&2
-  exit 1
-fi
-
-if [[ ! -f "$APP/Info.plist" ]]; then
-  echo "Error: the app bundle is missing Info.plist." >&2
-  exit 1
-fi
-
-echo "eSign-ready IPA verified: $IPA"
-echo "App bundle: $APP"
-echo "The IPA is unsigned and contains no embedded provisioning profile."
+echo "=== Build thành công: $IPA_NAME ==="
