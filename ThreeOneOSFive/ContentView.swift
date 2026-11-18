@@ -14,7 +14,6 @@ struct ContentView: View {
     @State private var aimDragActive = false
     @State private var aimBodyActive = false
     
-    // Gọi hàm kiểm tra thực tế
     @State private var isSandboxAvailable: Bool = checkSandboxStatus()
     
     var body: some View {
@@ -83,7 +82,9 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     
+                    // KHU VỰC LINK (FREE FIRE & ZALO)
                     VStack(alignment: .leading, spacing: 12) {
+                        // Nút Free Fire
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.right.square.fill")
                                 .foregroundColor(.red)
@@ -119,6 +120,44 @@ struct ContentView: View {
                                     .stroke(Color.red.opacity(0.5), lineWidth: 1)
                             )
                         }
+                        
+                        // Nút Zalo
+                        HStack(spacing: 6) {
+                            Image(systemName: "message.fill")
+                                .foregroundColor(.blue)
+                                .font(.system(size: 14))
+                            Text("LIÊN HỆ HỖ TRỢ")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.top, 8)
+                        
+                        Link(destination: URL(string: "https://zalo.me/0986321175")!) {
+                            HStack {
+                                Image(systemName: "message.fill")
+                                    .foregroundColor(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("ZALO HỖ TRỢ")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                    Text("0986321175")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.gray)
+                                }
+                                Spacer()
+                            }
+                            .padding()
+                            .background(Color(white: 0.1))
+                            .cornerRadius(16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.blue.opacity(0.5), lineWidth: 1)
+                            )
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 40)
@@ -132,18 +171,16 @@ struct ContentView: View {
         }
     }
     
-    // 2. HÀM GỌI PATCH TRANSACTION THỰC TẾ
+    // Logic áp dụng Patch
     func applyPatch(named patchName: String) {
         DispatchQueue.global(qos: .userInitiated).async {
             print("Bắt đầu nạp patch: \(patchName)")
             
-            // 1. Lấy quyền Sandbox
             if sandbox_escape(0) != 0 {
                 print("Lỗi: Không thể escape sandbox!")
                 return
             }
             
-            // 2. Lấy Container Path của Free Fire VN
             let bundleID = "com.garena.ffvn"
             guard let containerPathRaw = MCMContainerPathForIdentifier(0, bundleID as NSString, false, nil) else {
                 print("Lỗi: Không tìm thấy container của Free Fire VN!")
@@ -151,18 +188,15 @@ struct ContentView: View {
             }
             let containerURL = URL(fileURLWithPath: containerPathRaw as String)
             
-            // 3. Đọc file .3105 từ Bundle
             guard let patchPath = Bundle.main.path(forResource: "\(patchName).3105", ofType: nil, inDirectory: "Patches"),
                   let patchData = try? Data(contentsOf: URL(fileURLWithPath: patchPath)) else {
                 print("Lỗi: Không tìm thấy file \(patchName).3105 trong thư mục Patches!")
                 return
             }
             
-            // 4. Áp dụng PatchTransaction
             do {
                 let decoded = try PatchPackageCodec.decode(patchData, password: nil)
                 let project = decoded.project
-                
                 let backupRoot = FileManager.default.temporaryDirectory.appendingPathComponent("3105_Backups")
                 
                 let receipt = try PatchTransaction.apply(
