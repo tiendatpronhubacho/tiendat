@@ -11,14 +11,11 @@ workflows:
     scripts:
       - name: Build archive without signing
         script: |
-          rm -rf build
-          
-          # Dùng -target để ép build đúng target 3105
+          # Bỏ derivedDataPath
           xcodebuild -project "$XCODE_PROJECT" \
                      -target "$XCODE_TARGET" \
                      -configuration Release \
                      -sdk iphoneos \
-                     -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
@@ -28,11 +25,17 @@ workflows:
         script: |
           mkdir -p Payload
           
-          # Đường dẫn này khớp với -derivedDataPath build ở trên
-          # Copy file app vào Payload
-          find build/Build/Products/Release-iphoneos -name "*.app" -exec cp -r {} Payload/ \;
+          # Lục trong thư mục DerivedData mặc định của Mac để tìm file .app
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -type d -name "*.app" -path "*/Release-iphoneos/*" | head -n 1)
           
-          # Zip lại thành file ipa
+          if [ -z "$APP_PATH" ]; then
+            echo "LỖI: Không tìm thấy file .app. Build thất bại."
+            exit 1
+          fi
+          
+          echo "Tìm thấy app tại: $APP_PATH"
+          cp -r "$APP_PATH" Payload/
+          
           zip -r TienDat.ipa Payload
           
     artifacts:
