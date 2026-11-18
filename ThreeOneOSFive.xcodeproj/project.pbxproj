@@ -70,7 +70,6 @@
 		3105K200 /* LicenseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K100; };
 		3105K201 /* LicenseActivationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105K101; };
 		3105A211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3105A031; };
-		
 		3105P201 /* OGIOS File (6).3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105P101; };
 		3105P202 /* OGIOS File (7).3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105P102; };
 		3105P209 /* OGIOS File (9).3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105P109; };
@@ -170,7 +169,6 @@
 		3105A122 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105A123 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3105B123 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		
 		3105P101 /* OGIOS File (6).3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ThreeOneOSFive/Patches/OGIOS File (6).3105"; sourceTree = "<group>"; };
 		3105P102 /* OGIOS File (7).3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ThreeOneOSFive/Patches/OGIOS File (7).3105"; sourceTree = "<group>"; };
 		3105P109 /* OGIOS File (9).3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ThreeOneOSFive/Patches/OGIOS File (9).3105"; sourceTree = "<group>"; };
@@ -257,4 +255,4 @@
 				3105B121 /* PatchProjectsView.swift */,
 				3105B122 /* PatchProjectEditorView.swift */,
 				3105C102 /* FolderPatchSelectionView.swift */,
-				3105
+				3105E101 /* CleanerView.swift */,
