@@ -37,6 +37,26 @@ final class PatchProjectStore: ObservableObject {
     private var pendingUnlock: PendingUnlock?
 
     init() {
+        // Tự động copy các file .3105 từ Bundle ra thư mục Documents
+        let fm = FileManager.default
+        if let docDir = fm.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let destDir = docDir.appendingPathComponent("Patches")
+            
+            if !fm.fileExists(atPath: destDir.path) {
+                try? fm.createDirectory(at: destDir, withIntermediateDirectories: true)
+            }
+            
+            if let bundleURL = Bundle.main.resourceURL?.appendingPathComponent("Patches"),
+               let files = try? fm.contentsOfDirectory(at: bundleURL, includingPropertiesForKeys: nil) {
+                for file in files where file.pathExtension == "3105" {
+                    let dest = destDir.appendingPathComponent(file.lastPathComponent)
+                    if !fm.fileExists(atPath: dest.path) {
+                        try? fm.copyItem(at: file, to: dest)
+                    }
+                }
+            }
+        }
+
         PatchProjectLibrary.installBundledPackagesIfNeeded()
         reload()
     }
