@@ -1,40 +1,31 @@
 import SwiftUI
 
-// Khai báo hàm từ file C/Obj-C để check quyền và load patch
+// Khai báo hàm từ file C/Obj-C để check quyền
 @_silgen_name("MCMBridgeAvailable")
 func checkSandboxStatus() -> Bool
-
-@_silgen_name("load_patch_dylib")
-func load_patch_dylib(_ patchName: NSString) -> Bool
 
 struct ContentView: View {
     @State private var aimDragActive = false
     @State private var aimBodyActive = false
     
-    // Gọi hàm kiểm tra thực tế từ nhân C
     @State private var isSandboxAvailable: Bool = checkSandboxStatus()
     
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
             
-            // Red Grid Background
-            GridBackground()
-                .ignoresSafeArea()
+            GridBackground().ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header
                     HeaderView()
                     
-                    // Device Status Card
                     DeviceStatusCard(
                         iosVersion: UIDevice.current.systemVersion,
                         deviceModel: getDeviceModel(),
                         isSupported: isSandboxAvailable
                     )
                     
-                    // Patch Options Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("⚡ PATCH OPTIONS")
@@ -55,8 +46,7 @@ struct ContentView: View {
                                 isEnabled: isSandboxAvailable,
                                 onToggle: { isOn in
                                     if isOn {
-                                        let success = load_patch_dylib("Aim Drag" as NSString)
-                                        print("Nạp Aim Drag: \(success)")
+                                        print("Đã bật Aim Drag")
                                     }
                                 }
                             )
@@ -67,8 +57,7 @@ struct ContentView: View {
                                 isEnabled: isSandboxAvailable,
                                 onToggle: { isOn in
                                     if isOn {
-                                        let success = load_patch_dylib("Aim Body" as NSString)
-                                        print("Nạp Aim Body: \(success)")
+                                        print("Đã bật Aim Body")
                                     }
                                 }
                             )
@@ -76,7 +65,6 @@ struct ContentView: View {
                         .padding(.horizontal)
                     }
                     
-                    // Status Footer
                     HStack(spacing: 8) {
                         Circle()
                             .fill(isSandboxAvailable ? Color.green : Color.red)
@@ -88,7 +76,6 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     
-                    // Update Section
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.right.square.fill")
@@ -133,13 +120,11 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
-        // Cập nhật lại trạng thái khi view xuất hiện
         .onAppear {
             isSandboxAvailable = checkSandboxStatus()
         }
     }
     
-    // Hàm lấy tên thiết bị (iPhone13,4)
     func getDeviceModel() -> String {
         var systemInfo = utsname()
         uname(&systemInfo)
@@ -152,7 +137,6 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Components
 struct HeaderView: View {
     var body: some View {
         HStack {
@@ -249,13 +233,13 @@ struct PatchCard: View {
     let subtitle: String
     @Binding var isActive: Bool
     let isEnabled: Bool
-    var onToggle: (Bool) -> Void // Thêm closure này để bắt sự kiện bật/tắt
+    var onToggle: (Bool) -> Void
     
     var body: some View {
         Button(action: {
             if isEnabled { 
                 isActive.toggle() 
-                onToggle(isActive) // Gọi hàm khi toggle
+                onToggle(isActive) 
             }
         }) {
             VStack(alignment: .leading, spacing: 12) {
@@ -305,12 +289,10 @@ struct GridBackground: View {
         GeometryReader { geo in
             Path { path in
                 let spacing: CGFloat = 40
-                // Vertical lines
                 for x in stride(from: 0, to: geo.size.width, by: spacing) {
                     path.move(to: CGPoint(x: x, y: 0))
                     path.addLine(to: CGPoint(x: x, y: geo.size.height))
                 }
-                // Horizontal lines
                 for y in stride(from: 0, to: geo.size.height, by: spacing) {
                     path.move(to: CGPoint(x: 0, y: y))
                     path.addLine(to: CGPoint(x: geo.size.width, y: y))

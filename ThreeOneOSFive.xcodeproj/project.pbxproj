@@ -6,7 +6,6 @@
 	objectVersion = 56;
 	objects = {
 /* Begin PBXBuildFile section */
-3105C001 /* PatchLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 3105C002 /* PatchLoader.m */; };
 3105B001 /* Aim Body.3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105B002 /* Aim Body.3105 */; };
 		3105B003 /* Aim Drag.3105 in Resources */ = {isa = PBXBuildFile; fileRef = 3105B004 /* Aim Drag.3105 */; };
 		3105A200 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A020; };
@@ -80,7 +79,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-3105C002 /* PatchLoader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "ThreeOneOSFive/exploit/PatchLoader.m"; sourceTree = "<group>"; };
 3105B002 /* Aim Body.3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ThreeOneOSFive/Patches/Aim Body.3105"; sourceTree = "<group>"; };
 		3105B004 /* Aim Drag.3105 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ThreeOneOSFive/Patches/Aim Drag.3105"; sourceTree = "<group>"; };
 		3105A010 /* 3105.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "3105.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -389,7 +387,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			    3105C001,
 				3105A200, 3105A201, 3105A203, 3105A204,
 				3105A205, 3105A206, 3105A207, 3105A209,
 				3105A210, 3105A220, 3105A221, 3105A222, 3105A223,
