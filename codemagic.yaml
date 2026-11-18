@@ -1,41 +1,32 @@
 workflows:
-  ios-trollstore-build:
-    name: Build 3106 IPA
+  ios-unsigned-build:
+    name: iOS Unsigned Build
     instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
       xcode: latest
       vars:
-        XCODE_PROJECT: "ThreeOneOSSix.xcodeproj"
-        XCODE_TARGET: "3106"
+        XCODE_PROJECT: "ThreeOneOSFive.xcodeproj"
+        XCODE_SCHEME: "ThreeOneOSFive" # Hoặc "3106" tùy vào Scheme bạn đặt trong Xcode
+        BUILD_DIR: "build_output"
     scripts:
-      - name: Build archive without signing
+      - name: Set Xcode version
         script: |
-          rm -rf build_output
+          echo "Xcode version:"
+          xcodebuild -version
           
-          xcodebuild -project "$XCODE_PROJECT" \
-                     -target "$XCODE_TARGET" \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     SYMROOT="$(pwd)/build_output" \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     build
-                     
-      - name: Package into IPA
+      - name: Build unsigned IPA
         script: |
-          mkdir -p Payload
+          # Gọi script build unsigned có sẵn trong repo
+          chmod +x ./build_unsigned.sh
+          ./build_unsigned.sh
           
-          APP_PATH=$(find build_output -type d -name "*.app" | head -n 1)
-          
-          if [ -z "$APP_PATH" ]; then
-            echo "LỖI: Không tìm thấy file .app."
-            exit 1
-          fi
-          
-          cp -r "$APP_PATH" Payload/
-          zip -r TienDat_3106.ipa Payload
-          
+      - name: Prepare eSign IPA
+        script: |
+          # Gọi script đóng gói eSign (nếu bạn muốn dùng)
+          # Script này sẽ tìm file IPA trong thư mục build
+          chmod +x ./build_esign_ready_ipa.sh
+          ./build_esign_ready_ipa.sh ./build/OGIOS-unsigned.ipa
     artifacts:
-      - TienDat_3106.ipa
+      - build/*.ipa
+      - build_output/**/*.app
