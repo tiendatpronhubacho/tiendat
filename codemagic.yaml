@@ -5,11 +5,10 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Fix project.pbxproj with Python
+      - name: Fix project.pbxproj
         script: |
-          python3 -c '
-          import os
-          content = """// !$*UTF8*$!
+          cat > ThreeOneOSFive.xcodeproj/project.pbxproj << 'EOF'
+          // !$*UTF8*$!
           {
           	archiveVersion = 1;
           	classes = {
@@ -701,11 +700,7 @@ workflows:
           	};
           	rootObject = 3105A900;
           }
-          """
-          os.makedirs("ThreeOneOSFive.xcodeproj", exist_ok=True)
-          with open("ThreeOneOSFive.xcodeproj/project.pbxproj", "w") as f:
-              f.write(content)
-          '
+          EOF
           
       - name: Build App
         script: |
