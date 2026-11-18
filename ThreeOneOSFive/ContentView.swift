@@ -1,25 +1,18 @@
 import SwiftUI
 
-// 1. Khai báo các hàm C từ MCMBridge và Sandbox của 3105
-@_silgen_name("MCMBridgeAvailable")
-func checkSandboxStatus() -> Bool
-
+// Khai báo hàm C để lấy đường dẫn Container
 @_silgen_name("MCMContainerPathForIdentifier")
 func MCMContainerPathForIdentifier(_ cls: UInt64, _ identifier: NSString, _ group: Bool, _ error: UnsafeMutablePointer<NSString?>?) -> NSString?
 
-@_silgen_name("sandbox_escape")
-func sandbox_escape(_ self_proc: UInt64) -> Int32
-
 struct ContentView: View {
+    @EnvironmentObject private var appState: AppState
+    
     @State private var aimDragActive = false
     @State private var aimBodyActive = false
-    
-    @State private var isSandboxAvailable: Bool = checkSandboxStatus()
     
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
             GridBackground().ignoresSafeArea()
             
             ScrollView {
@@ -29,7 +22,7 @@ struct ContentView: View {
                     DeviceStatusCard(
                         iosVersion: UIDevice.current.systemVersion,
                         deviceModel: getDeviceModel(),
-                        isSupported: isSandboxAvailable
+                        isSupported: appState.isSupported
                     )
                     
                     VStack(alignment: .leading, spacing: 12) {
@@ -38,7 +31,7 @@ struct ContentView: View {
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.red)
                             Spacer()
-                            Text(isSandboxAvailable ? "SELECT TO ENABLE" : "ACCESS UNAVAILABLE")
+                            Text(appState.isSupported ? "SELECT TO ENABLE" : "ACCESS UNAVAILABLE")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.gray)
                         }
@@ -49,22 +42,18 @@ struct ContentView: View {
                                 title: "Aim Drag",
                                 subtitle: "FREE FIRE • NORMAL",
                                 isActive: $aimDragActive,
-                                isEnabled: isSandboxAvailable,
+                                isEnabled: appState.isSupported,
                                 onToggle: { isOn in
-                                    if isOn {
-                                        applyPatch(named: "Aim Drag")
-                                    }
+                                    if isOn { applyPatch(named: "Aim Drag") }
                                 }
                             )
                             PatchCard(
                                 title: "Aim Body",
                                 subtitle: "FREE FIRE • NORMAL",
                                 isActive: $aimBodyActive,
-                                isEnabled: isSandboxAvailable,
+                                isEnabled: appState.isSupported,
                                 onToggle: { isOn in
-                                    if isOn {
-                                        applyPatch(named: "Aim Body")
-                                    }
+                                    if isOn { applyPatch(named: "Aim Body") }
                                 }
                             )
                         }
@@ -73,18 +62,16 @@ struct ContentView: View {
                     
                     HStack(spacing: 8) {
                         Circle()
-                            .fill(isSandboxAvailable ? Color.green : Color.red)
+                            .fill(appState.isSupported ? Color.green : Color.red)
                             .frame(width: 8, height: 8)
-                        Text(isSandboxAvailable ? "READY -- SELECT A PATCH" : "BLOCKED -- iOS SANDBOX ACCESS IS NOT AVAILABLE")
+                        Text(appState.isSupported ? "READY -- SELECT A PATCH" : "BLOCKED -- iOS SANDBOX ACCESS IS NOT AVAILABLE")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(isSandboxAvailable ? .white : .gray)
+                            .foregroundColor(appState.isSupported ? .white : .gray)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     
-                    // KHU VỰC LINK (FREE FIRE & ZALO)
                     VStack(alignment: .leading, spacing: 12) {
-                        // Nút Free Fire
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.right.square.fill")
                                 .foregroundColor(.red)
@@ -121,7 +108,6 @@ struct ContentView: View {
                             )
                         }
                         
-                        // Nút Zalo
                         HStack(spacing: 6) {
                             Image(systemName: "message.fill")
                                 .foregroundColor(.blue)
@@ -167,47 +153,46 @@ struct ContentView: View {
         }
         .preferredColorScheme(.dark)
         .onAppear {
-            isSandboxAvailable = checkSandboxStatus()
+            appState.detectSupport()
         }
     }
     
-    // Logic áp dụng Patch
+    // HÀM APPLY PATCH ĐỌC TRỰC TIẾP TỪ BUNDLE
     func applyPatch(named patchName: String) {
         DispatchQueue.global(qos: .userInitiated).async {
-            print("Bắt đầu nạp patch: \(patchName)")
+            print("[Patch] Bắt đầu nạp: \(patchName)")
             
-            if sandbox_escape(0) != 0 {
-                print("Lỗi: Không thể escape sandbox!")
-                return
-            }
-            
-            let bundleID = "com.garena.ffvn"
-            guard let containerPathRaw = MCMContainerPathForIdentifier(0, bundleID as NSString, false, nil) else {
-                print("Lỗi: Không tìm thấy container của Free Fire VN!")
-                return
-            }
-            let containerURL = URL(fileURLWithPath: containerPathRaw as String)
-            
+            // 1. Tìm file trong Bundle
             guard let patchPath = Bundle.main.path(forResource: "\(patchName).3105", ofType: nil, inDirectory: "Patches"),
                   let patchData = try? Data(contentsOf: URL(fileURLWithPath: patchPath)) else {
-                print("Lỗi: Không tìm thấy file \(patchName).3105 trong thư mục Patches!")
+                print("[Patch] Lỗi: Không tìm thấy file \(patchName).3105 trong thư mục Patches!")
                 return
             }
             
             do {
+                // 2. Giải mã gói .3105
                 let decoded = try PatchPackageCodec.decode(patchData, password: nil)
                 let project = decoded.project
+                
+                // 3. Khởi tạo thư mục backup
                 let backupRoot = FileManager.default.temporaryDirectory.appendingPathComponent("3105_Backups")
                 
+                // 4. Gọi PatchTransaction để ghi đè vào thư mục game
                 let receipt = try PatchTransaction.apply(
                     project: project,
                     backupRoot: backupRoot,
-                    containerResolver: { _ in containerURL }
+                    containerResolver: { bundleID in
+                        // Dùng MCMBridge lấy path container của game (com.garena.ffvn)
+                        guard let path = MCMContainerPathForIdentifier(0, bundleID as NSString, false, nil) else {
+                            throw NSError(domain: "Patch", code: 1, userInfo: [NSLocalizedDescriptionKey: "Không lấy được Container"])
+                        }
+                        return URL(fileURLWithPath: path as String)
+                    }
                 )
-                print("Nạp patch thành công! Transaction ID: \(receipt.id)")
+                print("[Patch] Nạp thành công! ID: \(receipt.id)")
                 
             } catch {
-                print("Lỗi khi nạp patch: \(error)")
+                print("[Patch] Lỗi khi nạp: \(error.localizedDescription)")
             }
         }
     }
