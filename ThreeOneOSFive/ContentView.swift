@@ -1,8 +1,11 @@
 import SwiftUI
 
-// Khai báo hàm C để lấy đường dẫn Container
+// Khai báo các hàm từ nhân C của 3105
 @_silgen_name("MCMContainerPathForIdentifier")
 func MCMContainerPathForIdentifier(_ cls: UInt64, _ identifier: NSString, _ group: Bool, _ error: UnsafeMutablePointer<NSString?>?) -> NSString?
+
+@_silgen_name("sandbox_escape")
+func sandbox_escape(_ self_proc: UInt64) -> Int32
 
 struct ContentView: View {
     @EnvironmentObject private var appState: AppState
@@ -157,42 +160,36 @@ struct ContentView: View {
         }
     }
     
-    // HÀM APPLY PATCH ĐỌC TRỰC TIẾP TỪ BUNDLE
+    // HÀM APPLY PATCH: DÙNG DLOPEN + SANDBOX ESCAPE
     func applyPatch(named patchName: String) {
         DispatchQueue.global(qos: .userInitiated).async {
             print("[Patch] Bắt đầu nạp: \(patchName)")
             
-            // 1. Tìm file trong Bundle
-            guard let patchPath = Bundle.main.path(forResource: "\(patchName).3105", ofType: nil, inDirectory: "Patches"),
-                  let patchData = try? Data(contentsOf: URL(fileURLWithPath: patchPath)) else {
+            // 1. Kích hoạt Sandbox Escape để lấy quyền ghi vào game
+            if sandbox_escape(0) != 0 {
+                print("[Patch] Lỗi: Không thể vượt Sandbox!")
+                return
+            }
+            
+            // 2. Lấy đường dẫn file patch từ Bundle
+            guard let patchPath = Bundle.main.path(forResource: "\(patchName).3105", ofType: nil, inDirectory: "Patches") else {
                 print("[Patch] Lỗi: Không tìm thấy file \(patchName).3105 trong thư mục Patches!")
                 return
             }
             
-            do {
-                // 2. Giải mã gói .3105
-                let decoded = try PatchPackageCodec.decode(patchData, password: nil)
-                let project = decoded.project
-                
-                // 3. Khởi tạo thư mục backup
-                let backupRoot = FileManager.default.temporaryDirectory.appendingPathComponent("3105_Backups")
-                
-                // 4. Gọi PatchTransaction để ghi đè vào thư mục game
-                let receipt = try PatchTransaction.apply(
-                    project: project,
-                    backupRoot: backupRoot,
-                    containerResolver: { bundleID in
-                        // Dùng MCMBridge lấy path container của game (com.garena.ffvn)
-                        guard let path = MCMContainerPathForIdentifier(0, bundleID as NSString, false, nil) else {
-                            throw NSError(domain: "Patch", code: 1, userInfo: [NSLocalizedDescriptionKey: "Không lấy được Container"])
-                        }
-                        return URL(fileURLWithPath: path as String)
-                    }
-                )
-                print("[Patch] Nạp thành công! ID: \(receipt.id)")
-                
-            } catch {
-                print("[Patch] Lỗi khi nạp: \(error.localizedDescription)")
+            // 3. Tiến hành Inject thẳng vào game bằng dlopen
+            // Thay 'inject_dylib' bằng hàm inject có sẵn trong nhân C của 3105 (nếu có)
+            // Hoặc dùng cách nạp file dylib thủ công nếu 3105 hỗ trợ
+            
+            print("[Patch] Đang tiến hành inject: \(patchPath)")
+            
+            let handle = dlopen(patchPath, RTLD_NOW)
+            if let handle = handle {
+                print("[Patch] Nạp thành công file \(patchName)!")
+                dlclose(handle)
+            } else {
+                let error = String(cString: dlerror())
+                print("[Patch] Lỗi khi dlopen: \(error)")
             }
         }
     }
