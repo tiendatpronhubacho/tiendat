@@ -665,56 +665,86 @@ workflows:
               f.write(content)
           '
           
-      - name: Auto Add Patch Resources
+      - name: Inject Patch Resources Properly
         script: |
           python3 -c '
           import os
+          import glob
+          import uuid
           
           pbxproj_path = "ThreeOneOSFive.xcodeproj/project.pbxproj"
           patches_dir = "ThreeOneOSFive/Patches"
           
-          with open(pbxproj_path, "r") as f:
-              content = f.read()
-          
           if not os.path.exists(patches_dir):
-              print(f"Directory {patches_dir} not found.")
+              print("Patches dir not found")
               exit(0)
           
-          patch_files = sorted([f for f in os.listdir(patches_dir) if f.endswith(".3105")])
+          patch_files = sorted(glob.glob(f"{patches_dir}/*.3105"))
           if not patch_files:
-              print("No .3105 files found.")
+              print("No patch files")
               exit(0)
           
-          build_files_entries = []
-          file_ref_entries = []
-          resources_entries = []
+          with open(pbxproj_path, "r") as f:
+              lines = f.readlines()
           
-          start_id = 300
-          for idx, filename in enumerate(patch_files):
-              file_id = f"3105F{start_id + idx:03d}"
-              build_id = f"3105FB{start_id + idx:03d}"
+          # Generate IDs
+          build_ids = {os.path.basename(p): uuid.uuid4().hex[:24].upper() for p in patch_files}
+          file_ref_ids = {os.path.basename(p): uuid.uuid4().hex[:24].upper() for p in patch_files}
+          
+          build_entries = []
+          ref_entries = []
+          res_entries = []
+          
+          for p in patch_files:
+              name = os.path.basename(p)
+              b_id = build_ids[name]
+              f_id = file_ref_ids[name]
+              build_entries.append(f"\t\t{b_id} /* {name} in Resources */ = {{isa = PBXBuildFile; fileRef = {f_id}; }};\n")
+              ref_entries.append(f"\t\t{f_id} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = file; path = \"{patches_dir}/{name}\"; sourceTree = \"<group>\"; }};\n")
+              res_entries.append(f"\t\t\t\t{b_id},\n")
+          
+          # Inject into sections
+          out = []
+          in_build = False
+          in_ref = False
+          in_res = False
+          
+          for line in lines:
+              if "/* Begin PBXBuildFile section */" in line:
+                  in_build = True
+                  out.append(line)
+                  for e in build_entries: out.append(e)
+                  continue
+              if "/* End PBXBuildFile section */" in line:
+                  in_build = False
               
-              build_files_entries.append(f"\t\t{build_id} /* {filename} in Resources */ = {{isa = PBXBuildFile; fileRef = {file_id}; }};")
-              file_ref_entries.append(f"\t\t{file_id} /* {filename} */ = {{isa = PBXFileReference; lastKnownFileType = file; path = \"{patches_dir}/{filename}\"; sourceTree = \"<group>\"; }};")
-              resources_entries.append(f"\t\t\t\t{build_id},")
-          
-          content = content.replace(
-              "/* End PBXBuildFile section */",
-              "\n".join(build_files_entries) + "\n/* End PBXBuildFile section */"
-          )
-          content = content.replace(
-              "/* End PBXFileReference section */",
-              "\n".join(file_ref_entries) + "\n/* End PBXFileReference section */"
-          )
-          content = content.replace(
-              "3105A228,\n\t\t\t);",
-              "3105A228,\n" + "\n".join(resources_entries) + "\n\t\t\t);"
-          )
-          
+              if "/* Begin PBXFileReference section */" in line:
+                  in_ref = True
+                  out.append(line)
+                  for e in ref_entries: out.append(e)
+                  continue
+              if "/* End PBXFileReference section */" in line:
+                  in_ref = False
+                  
+              if "isa = PBXResourcesBuildPhase;" in line:
+                  in_res = True
+                  out.append(line)
+                  continue
+                  
+              if in_res and "files = (" in line:
+                  out.append(line)
+                  for e in res_entries: out.append(e)
+                  continue
+                  
+              if in_res and ");" in line:
+                  in_res = False
+                  
+              out.append(line)
+              
           with open(pbxproj_path, "w") as f:
-              f.write(content)
-          
-          print(f"Added {len(patch_files)} patch files to Resources.")
+              f.writelines(out)
+              
+          print("Successfully injected patch resources.")
           '
           
       - name: Build App
