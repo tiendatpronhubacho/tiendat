@@ -1,32 +1,32 @@
 workflows:
-  ios-unsigned-build:
-    name: iOS Unsigned Build
+  ios-unsigned-ipa:
+    name: TienDat - OGIOS Unsigned IPA
     instance_type: mac_mini_m2
     max_build_duration: 60
+
     environment:
       xcode: latest
-      vars:
-        XCODE_PROJECT: "ThreeOneOSFive.xcodeproj"
-        XCODE_SCHEME: "ThreeOneOSFive" # Hoặc "3106" tùy vào Scheme bạn đặt trong Xcode
-        BUILD_DIR: "build_output"
+
     scripts:
-      - name: Set Xcode version
+      - name: Check Xcode and project scheme
         script: |
-          echo "Xcode version:"
+          set -euo pipefail
           xcodebuild -version
-          
+          xcodebuild -list -project ThreeOneOSFive.xcodeproj
+
       - name: Build unsigned IPA
         script: |
-          # Gọi script build unsigned có sẵn trong repo
+          set -euo pipefail
           chmod +x ./build_unsigned.sh
           ./build_unsigned.sh
-          
-      - name: Prepare eSign IPA
+
+      - name: Verify eSign-ready IPA
         script: |
-          # Gọi script đóng gói eSign (nếu bạn muốn dùng)
-          # Script này sẽ tìm file IPA trong thư mục build
+          set -euo pipefail
+          IPA="build/HYper-Regedit-Key-Enabled-unsigned.ipa"
+          test -f "$IPA"
           chmod +x ./build_esign_ready_ipa.sh
-          ./build_esign_ready_ipa.sh ./build/OGIOS-unsigned.ipa
+          ./build_esign_ready_ipa.sh "$IPA"
+
     artifacts:
-      - build/*.ipa
-      - build_output/**/*.app
+      - build/HYper-Regedit-Key-Enabled-unsigned.ipa
